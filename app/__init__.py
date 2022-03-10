@@ -16,6 +16,7 @@ FILES_DIRECTORY = os.getenv('FILES_DIRECTORY')
 ALLOWED_EXTENSIONS = os.getenv('ALLOWED_EXTENSIONS')
 MAX_CONTENT_LENGTH = os.getenv('MAX_CONTENT_LENGTH')
 
+
 if not os.path.isdir(PATH):
     os.mkdir(PATH)
     for item in EXTENSION:
@@ -79,13 +80,11 @@ def download(filename: str):
 @app.get('/download-zip')
 def download_dir_as_zip():
     extension = request.args.get('file_extension')
-    extension_format = request.args.get('file_extension').split('.')[1]
-    path = os.path.join('/tmp')
-    # if EXTENSION.__contains__(extension_format):               
-    #     command = f"zip -q {extension} {path}"
-    #     os.system(command)
-    #     zipped_file = f'{path}/teste.zip'
-    #     return send_file(zipped_file,as_attachment=True),HTTPStatus.OK
-        # return send_file(filepath, as_attachment=True),HTTPStatus.OK
+    compression = request.args.get('compression_ratio')
+    folder_to_record = f'/tmp/{extension}.zip'
+    if EXTENSION.__contains__(extension):               
+        command = f"zip -r {compression} {folder_to_record} {FILES_DIRECTORY} "
+        os.system(command)
+        return send_file(folder_to_record,as_attachment=True),HTTPStatus.OK
     return {'msg': 'Format not Found'},HTTPStatus.NOT_FOUND
 
