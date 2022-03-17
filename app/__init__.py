@@ -1,11 +1,8 @@
-from http.client import REQUEST_ENTITY_TOO_LARGE
 import os
 from http import HTTPStatus
-from fileinput import filename
-from pathlib import Path
 from werkzeug.security import safe_join
 from app.kenzie.image import get_file_path, upload_files
-from flask import Flask, jsonify, request, safe_join, send_file
+from flask import Flask, request, safe_join, send_file
 
 app = Flask(__name__)
 
@@ -79,12 +76,17 @@ def download(filename: str):
 
 @app.get('/download-zip')
 def download_dir_as_zip():
-    extension = request.args.get('file_extension')
+    extension_type = request.args.get('file_extension')
     compression = request.args.get('compression_ratio')
-    folder_to_record = f'/tmp/{extension}.zip'
-    if EXTENSION.__contains__(extension):               
-        command = f"zip -r {compression} {folder_to_record} {FILES_DIRECTORY} "
-        os.system(command)
-        return send_file(folder_to_record,as_attachment=True),HTTPStatus.OK
-    return {'msg': 'Format not Found'},HTTPStatus.NOT_FOUND
-
+    if  extension_type not in EXTENSION:  
+        return {'msg': 'Format not Found'},HTTPStatus.NOT_FOUND
+    folder_to_record = f'/tmp/{extension_type}.zip'
+    path = safe_join(FILES_DIRECTORY, extension_type)
+    files_list = list(os.listdir(path))
+    if len(files_list) == 0:
+        return {'msg': f'Not found files of {extension_type} type.'}, 404
+    if os.path.exists(folder_to_record):
+        os.remove(folder_to_record)
+    command = f"zip -r -{compression} {folder_to_record} {path}"
+    os.system(command)
+    return send_file(folder_to_record,as_attachment=True),HTTPStatus.OK
